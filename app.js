@@ -5,23 +5,24 @@ const projects=window.portfolioProjects;
 let lastTrigger;
 function render(filter='all'){
  grid.replaceChildren();
- const shown=projects.filter(p=>filter==='all'||p.type===filter);
+ const thumbnails=document.querySelector('#thumbnail-grid');thumbnails.replaceChildren();
+ const shown=projects.filter(p=>p.type==='thumbnail'||filter==='all'||(filter==='video'?p.type==='video':p.type===filter));
  shown.forEach(p=>{
   const card=document.createElement('article');card.className='project '+p.type+(p.featured?' featured':'');
-  const button=document.createElement('button');button.className='project-image';button.setAttribute('aria-label',(p.id?'Play ':'View ')+p.title);
+  const button=document.createElement('button');button.className='project-image';button.setAttribute('aria-label',(p.external?'Watch on YouTube: ':p.id?'Play ':'View ')+p.title);
   const img=document.createElement('img');img.src=p.image||`https://i.ytimg.com/vi/${p.id}/hqdefault.jpg`;img.alt=p.title;img.loading='lazy';img.decoding='async';
   img.addEventListener('error',()=>{img.hidden=true;button.classList.add('image-missing');});
   button.append(img);const icon=document.createElement('span');icon.className='project-icon';icon.textContent=p.id?'▶':'↗';button.append(icon);
   const label=document.createElement('p');label.className='project-label';label.textContent=p.label;
   const title=document.createElement('h3');title.textContent=p.title;
-  button.addEventListener('click',()=>openProject(p,button));card.append(button,label,title);grid.append(card);
+  button.addEventListener('click',()=>openProject(p,button));card.append(button,label,title);(p.type==='thumbnail'?thumbnails:grid).append(card);
  });
- document.querySelector('#work-count').textContent=`${shown.length} projects shown`;
+ document.querySelector('#work-count').textContent=`${shown.filter(p=>p.type!=='thumbnail').length} video projects shown. Three supporting thumbnails below.`;
 }
 function openProject(p,trigger){
  // A file:// preview cannot supply the web referrer YouTube requires.
  // Keep previews usable; hosted HTTP(S) pages retain embedded playback.
- if(p.id&&!['http:','https:'].includes(window.location.protocol)){
+ if(p.id&&(p.external||!['http:','https:'].includes(window.location.protocol))){
   window.open(`https://www.youtube.com/watch?v=${p.id}`,'_blank','noopener,noreferrer');
   return;
  }
